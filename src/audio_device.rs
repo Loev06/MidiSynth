@@ -15,6 +15,12 @@ fn process_frame<SampleType>(
 where
     SampleType: Sample + FromSample<f32>,
 {
+    // if receiver.len() < output.len() / num_channels {
+    //     eprintln!("Not enough messages in the channel, filling with zeros.");
+    //     output.fill(SampleType::from_sample(0.0));
+    //     return Ok(());
+    // }
+
     for frame in output.chunks_mut(num_channels) {
         let message = receiver.try_recv().unwrap_or_else(|e| {
             eprintln!("Error receiving message: {}", e);
