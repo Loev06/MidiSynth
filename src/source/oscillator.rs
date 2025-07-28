@@ -1,3 +1,4 @@
+use crate::source::SourceTrait;
 use std::f32::consts::TAU;
 
 pub enum Waveform {
@@ -16,24 +17,8 @@ pub struct Oscillator {
     sample_rate: u32,
 }
 
-impl Oscillator {
-    pub fn new(
-        waveform: Waveform,
-        frequency: f32,
-        amplitude: f32,
-        phase: f32,
-        sample_rate: u32,
-    ) -> Self {
-        Oscillator {
-            waveform,
-            frequency,
-            amplitude,
-            phase,
-            sample_rate,
-        }
-    }
-
-    pub fn next_sample(&mut self) -> f32 {
+impl SourceTrait for Oscillator {
+    fn next_sample(&mut self) -> f32 {
         let sample = match self.waveform {
             Waveform::Sine => self.amplitude * (self.phase * TAU).sin(),
             Waveform::Square => {
@@ -59,5 +44,23 @@ impl Oscillator {
             self.phase -= 1.0;
         }
         sample
+    }
+}
+
+impl Oscillator {
+    pub fn new(
+        waveform: Waveform,
+        frequency: f32,
+        amplitude: f32,
+        phase: f32,
+        sample_rate: u32,
+    ) -> Self {
+        Oscillator {
+            waveform,
+            frequency,
+            amplitude,
+            phase,
+            sample_rate,
+        }
     }
 }
