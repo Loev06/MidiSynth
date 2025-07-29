@@ -43,7 +43,9 @@ impl EnvelopeADSR {
     }
 
     pub fn trigger_off(&mut self, current_time: f32) {
-        self.state = EnvelopeState::TriggeredOff(current_time);
+        if matches!(self.state, EnvelopeState::TriggeredOn(_)) {
+            self.state = EnvelopeState::TriggeredOff(current_time);
+        }
     }
 
     pub fn reset(&mut self) {

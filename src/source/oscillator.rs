@@ -16,12 +16,12 @@ pub struct Oscillator {
 }
 
 impl SourceTrait for Oscillator {
-    fn next_sample(&mut self, f: f32, t: f32) -> f32 {
+    fn next_sample(&self, f: f32, t: f32) -> f32 {
         let phase = f * t
             + self.modulation_amplitude * f * (TAU * self.modulation_frequency * t).sin() / TAU;
 
         let sample = match self.waveform {
-            Waveform::Sine => phase.sin(),
+            Waveform::Sine => (TAU * phase).sin(),
             Waveform::Square => {
                 if phase.fract() < 0.5 {
                     1.0
