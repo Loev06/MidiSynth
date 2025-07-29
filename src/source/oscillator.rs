@@ -1,5 +1,5 @@
 use crate::source::SourceTrait;
-use std::f32::consts::TAU;
+use std::f32::consts::{PI, TAU};
 
 pub enum Waveform {
     Sine,
@@ -13,37 +13,42 @@ pub struct Oscillator {
     waveform: Waveform,
     frequency: f32,
     amplitude: f32,
-    phase: f32,
-    sample_rate: u32,
+    modulation_amplitude: f32,
+    modulation_frequency: f32,
 }
 
 impl SourceTrait for Oscillator {
-    fn next_sample(&mut self) -> f32 {
+    fn next_sample(&mut self, t: f32) -> f32 {
+        let phase = (self.frequency * t
+            + self.modulation_amplitude
+                * self.frequency
+                * (TAU * self.modulation_frequency * t).sin())
+        .fract();
+
         let sample = match self.waveform {
-            Waveform::Sine => self.amplitude * (self.phase * TAU).sin(),
+            Waveform::Sine => (TAU * phase).sin(),
             Waveform::Square => {
-                if self.phase < 0.5 {
-                    self.amplitude
+                if phase < 0.5 {
+                    1.0
                 } else {
-                    -self.amplitude
+                    -1.0
                 }
             }
-            Waveform::Triangle => 2.0 * self.amplitude * (self.phase - 0.5).abs() - self.amplitude,
-            Waveform::PerfectSawtooth => self.amplitude * (2.0 * self.phase - 1.0),
+
+            // 4.0 * (phase - 0.5).abs() - 1.0 would suffice, but we shift the wave by 0.75 to have the same phase as the other functions
+            Waveform::Triangle => 4.0 * ((phase + 0.75).fract() - 0.5).abs() - 1.0,
+
+            // Again, shift the phase by 0.5
+            Waveform::PerfectSawtooth => 2.0 * (phase + 0.5).fract() - 1.0,
             Waveform::SineSawtooth(n) => {
                 let mut sawtooth = 0.0;
                 for i in 1..=n {
-                    sawtooth -= (i as f32 * self.phase * TAU).sin() / (i as f32);
+                    sawtooth -= (TAU * i as f32 * (phase - 0.5)).sin() / (i as f32);
                 }
-                sawtooth * self.amplitude
+                sawtooth * 2.0 / PI
             }
         };
-
-        self.phase += self.frequency / self.sample_rate as f32;
-        if self.phase >= 1.0 {
-            self.phase -= 1.0;
-        }
-        sample
+        sample * self.amplitude
     }
 }
 
@@ -52,15 +57,15 @@ impl Oscillator {
         waveform: Waveform,
         frequency: f32,
         amplitude: f32,
-        phase: f32,
-        sample_rate: u32,
+        modulation_amplitude: f32,
+        modulation_frequency: f32,
     ) -> Self {
         Oscillator {
             waveform,
             frequency,
             amplitude,
-            phase,
-            sample_rate,
+            modulation_amplitude,
+            modulation_frequency,
         }
     }
 }

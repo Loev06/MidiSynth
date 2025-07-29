@@ -6,7 +6,7 @@ pub struct Noise {
 }
 
 impl SourceTrait for Noise {
-    fn next_sample(&mut self) -> f32 {
+    fn next_sample(&mut self, t: f32) -> f32 {
         let mut rng = rand::rng();
         rng.random_range(-1.0..=1.0) * self.amplitude
     }
