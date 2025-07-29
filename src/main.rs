@@ -1,5 +1,6 @@
 mod audio_device;
 mod envelope;
+mod instrument;
 mod source;
 mod types;
 
@@ -19,7 +20,7 @@ fn main() -> Result<()> {
     let (stream, sample_rate) = audio_device::stream_setup(r)?;
     stream.play()?;
 
-    let mut oscillator = Oscillator::new(Waveform::Triangle, 391.0, 0.05, 0.02, 5.0);
+    let mut oscillator = Oscillator::new(Waveform::Triangle, 0.02, 5.0);
     // let mut oscillator = Noise::new(0.03);
     let mut envelope = EnvelopeADSR::new(0.3, 0.3, 0.4, 1.0, 0.6);
 
@@ -42,7 +43,8 @@ fn main() -> Result<()> {
     while start_t.elapsed().as_secs_f32() < 10.0 {
         while s.len() > 480 {}
         let t = sample_no as f64 / sample_rate.0 as f64;
-        let sample = oscillator.next_sample(t as f32) * envelope.get_amplitude(t as f32);
+        let sample =
+            0.01 * oscillator.next_sample(440.0, t as f32) * envelope.get_amplitude(t as f32);
         s.send(types::Message(sample, sample))?;
         sample_no += 1;
     }

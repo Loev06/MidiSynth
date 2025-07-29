@@ -46,27 +46,20 @@ impl EnvelopeADSR {
         self.state = EnvelopeState::TriggeredOff(current_time);
     }
 
-    pub fn get_amplitude(&mut self, current_time: f32) -> f32 {
-        if let EnvelopeState::TriggeredOff(time_off) = self.state {
-            let elapsed = current_time - time_off;
-
-            if elapsed >= self.release_time {
-                self.state = EnvelopeState::Idle;
-                return 0.0;
-            }
-        }
-
-        let amplitude = self.get_raw_amplitude(current_time);
-
-        if amplitude < 0.0001 {
-            0.0
-        } else {
-            amplitude
-        }
+    pub fn reset(&mut self) {
+        self.state = EnvelopeState::Idle;
     }
 
-    fn get_raw_amplitude(&self, current_time: f32) -> f32 {
-        match self.state {
+    pub fn can_be_reset(&self, current_time: f32) -> bool {
+        if let EnvelopeState::TriggeredOff(time_off) = self.state {
+            let elapsed = current_time - time_off;
+            return elapsed >= self.release_time;
+        }
+        false
+    }
+
+    pub fn get_amplitude(&self, current_time: f32) -> f32 {
+        let amplitude = match self.state {
             EnvelopeState::Idle => 0.0,
             EnvelopeState::TriggeredOn(time_on) => {
                 let elapsed = current_time - time_on;
@@ -90,6 +83,12 @@ impl EnvelopeADSR {
 
                 (1.0 - elapsed / self.release_time) * self.sustain_amplitude
             }
+        };
+
+        if amplitude < 0.0001 {
+            0.0
+        } else {
+            amplitude
         }
     }
 }

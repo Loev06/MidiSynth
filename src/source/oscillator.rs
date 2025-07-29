@@ -11,19 +11,14 @@ pub enum Waveform {
 
 pub struct Oscillator {
     waveform: Waveform,
-    frequency: f32,
-    amplitude: f32,
     modulation_amplitude: f32,
     modulation_frequency: f32,
 }
 
 impl SourceTrait for Oscillator {
-    fn next_sample(&mut self, t: f32) -> f32 {
-        let phase = self.frequency * t
-            + self.modulation_amplitude
-                * self.frequency
-                * (TAU * self.modulation_frequency * t).sin()
-                / TAU;
+    fn next_sample(&mut self, f: f32, t: f32) -> f32 {
+        let phase = f * t
+            + self.modulation_amplitude * f * (TAU * self.modulation_frequency * t).sin() / TAU;
 
         let sample = match self.waveform {
             Waveform::Sine => phase.sin(),
@@ -48,22 +43,14 @@ impl SourceTrait for Oscillator {
                 sawtooth * 2.0 / PI
             }
         };
-        sample * self.amplitude
+        sample
     }
 }
 
 impl Oscillator {
-    pub fn new(
-        waveform: Waveform,
-        frequency: f32,
-        amplitude: f32,
-        modulation_amplitude: f32,
-        modulation_frequency: f32,
-    ) -> Self {
+    pub fn new(waveform: Waveform, modulation_amplitude: f32, modulation_frequency: f32) -> Self {
         Oscillator {
             waveform,
-            frequency,
-            amplitude,
             modulation_amplitude,
             modulation_frequency,
         }
