@@ -14,6 +14,7 @@ pub trait InstrumentTrait: Default {
             envelope.reset();
         }
         if envelope.is_idle() {
+            // TODO: reconsider envelope trigger logic. Should be able to trigger during release phase
             envelope.trigger_on(t);
         }
 
@@ -22,8 +23,6 @@ pub trait InstrumentTrait: Default {
 
     fn trigger_off(&mut self, t: f32) {
         let envelope = self.get_envelope_mut();
-        if envelope.is_idle() {
-            envelope.trigger_off(t);
-        }
+        envelope.trigger_off(t);
     }
 }
